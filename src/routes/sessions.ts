@@ -16,10 +16,10 @@ import { OpenAI } from "openai";
 
 const router = Router();
 
-// Initialize OpenAI client
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
-});
+// Initialize OpenAI client only if API key is provided
+const openai = process.env.OPENAI_API_KEY && process.env.OPENAI_API_KEY !== 'sk-your-key-here'
+  ? new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
+  : null;
 
 // ============ CREATE SESSION ============
 
@@ -49,24 +49,42 @@ router.post("/", authMiddleware, async (req: Request, res: Response) => {
       return;
     }
 
-    // Call OpenAI (or Claude, depending on your preference)
-    const response = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",  // Change to "gpt-4" if you have access
-      messages: [
-        {
-          role: "system",
-          content: "You are a helpful tutoring assistant. Explain concepts clearly and provide examples."
-        },
-        {
-          role: "user",
-          content: question
-        }
-      ],
-      temperature: 0.7,
-      max_tokens: 500
-    });
+    // Call OpenAI (or use mock response if no API key)
+    let tutorResponse: string;
 
-    const tutorResponse = response.choices[0].message.content || "";
+    if (openai) {
+      try {
+        const response = await openai.chat.completions.create({
+          model: "gpt-3.5-turbo",  // Change to "gpt-4" if you have access
+          messages: [
+            {
+              role: "system",
+              content: "You are a helpful tutoring assistant. Explain concepts clearly and provide examples."
+            },
+            {
+              role: "user",
+              content: question
+            }
+          ],
+          temperature: 0.7,
+          max_tokens: 500
+        });
+        tutorResponse = response.choices[0].message.content || "";
+      } catch (error: any) {
+        if (error.status === 401) {
+          throw new Error("OpenAI API key is invalid. Please set a valid OPENAI_API_KEY in your .env file.");
+        }
+        throw error;
+      }
+    } else {
+      // Mock response for development without OpenAI API key
+      tutorResponse = `This is a simulated AI response to: "${question}"\n\n` +
+        `To enable real AI responses:\n` +
+        `1. Get an API key from https://platform.openai.com/api-keys\n` +
+        `2. Add it to your .env file: OPENAI_API_KEY=sk-your-key\n` +
+        `3. Restart the server\n\n` +
+        `For now, this app will work with mock responses so you can test all other features!`;
+    }
 
     // Save to database
     const result = await pool.query(
