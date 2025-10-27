@@ -52,9 +52,9 @@ router.post("/", authMiddleware, async (req: Request, res: Response) => {
     // Call OpenAI (or use mock response if no API key)
     let tutorResponse: string;
 
-    if (openai) {
+    if (openai !== null) {
       try {
-        const response = await openai.chat.completions.create({
+        const response = await openai!.chat.completions.create({
           model: "gpt-3.5-turbo",  // Change to "gpt-4" if you have access
           messages: [
             {
