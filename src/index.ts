@@ -18,7 +18,7 @@ const app: Express = express();
 
 // CORS (allow requests from frontend)
 app.use(cors({
-  origin: process.env.FRONTEND_URL || "http://localhost:3000",
+  origin: process.env.FRONTEND_URL || "http://localhost:5173",
   credentials: true
 }));
 
@@ -35,6 +35,19 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 });
 
 // ============ ROUTES ============
+
+// Root route - API info
+app.get("/", (req: Request, res: Response) => {
+  res.json({
+    name: "Tutoring API",
+    version: "1.0.0",
+    endpoints: {
+      health: "/health",
+      auth: "/auth (register, login)",
+      sessions: "/sessions (tutoring sessions)"
+    }
+  });
+});
 
 // Health check route (to verify server is alive)
 app.get("/health", (req: Request, res: Response) => {
