@@ -17,7 +17,7 @@ import { OpenAI } from "openai";
 const router = Router();
 
 // Initialize OpenAI client only if API key is provided
-const openai = process.env.OPENAI_API_KEY && process.env.OPENAI_API_KEY !== 'sk-your-key-here'
+const openai: OpenAI | null = process.env.OPENAI_API_KEY && process.env.OPENAI_API_KEY !== 'sk-your-key-here'
   ? new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
   : null;
 
@@ -54,7 +54,7 @@ router.post("/", authMiddleware, async (req: Request, res: Response) => {
 
     if (openai !== null) {
       try {
-        const response = await openai!.chat.completions.create({
+        const response = await openai.chat.completions.create({
           model: "gpt-3.5-turbo",  // Change to "gpt-4" if you have access
           messages: [
             {
