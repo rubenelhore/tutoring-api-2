@@ -7,7 +7,10 @@ import dotenv from "dotenv";
 import path from "path";
 
 // We instantiate the environment
-dotenv.config({ path: path.resolve(__dirname, "../.env") });
+// In production (Railway), env vars are injected directly, no .env file needed
+if (process.env.NODE_ENV !== 'production') {
+  dotenv.config({ path: path.resolve(__dirname, "../.env") });
+}
 
 export const config = {
   // Database instantiation

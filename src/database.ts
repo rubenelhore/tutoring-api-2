@@ -6,14 +6,27 @@ import { Pool } from "pg";
 import { config } from "./config";
 
 // Create pool for connections and handle eficiently many requests
+// Support both DATABASE_URL (Railway) and individual config values (local)
 
-const pool = new Pool({
-  user: config.database.user,
-  password: config.database.password,
-  host: config.database.host,
-  port: config.database.port,
-  database: config.database.database
-});
+console.log('🔍 Database configuration:');
+console.log('  NODE_ENV:', process.env.NODE_ENV);
+console.log('  DATABASE_URL exists:', !!process.env.DATABASE_URL);
+console.log('  Using DATABASE_URL:', !!process.env.DATABASE_URL ? 'Yes (Railway/Production)' : 'No (Local config)');
+
+const pool = new Pool(
+  process.env.DATABASE_URL
+    ? {
+        connectionString: process.env.DATABASE_URL,
+        ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+      }
+    : {
+        user: config.database.user,
+        password: config.database.password,
+        host: config.database.host,
+        port: config.database.port,
+        database: config.database.database
+      }
+);
 
 // Create tables con start, if have not been created
 export const initializeDatabase = async () => {
